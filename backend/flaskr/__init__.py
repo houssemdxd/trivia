@@ -41,7 +41,7 @@ def create_app(test_config=None):
 	    return current_questions
 
 
-
+    # we have a  GET requests for all  categories.
     @app.route('/categories',methods=['GET'])
     def get_gategories():
 
@@ -53,8 +53,11 @@ def create_app(test_config=None):
       for i in current:
        d[str(i['id'])]=str(i['type'])
       print(d)
-      return jsonify({'categories': d})
+      return jsonify({'categories': d,'success':True})
     
+    
+    # GET requests for questions per  10 questions
+    #returns a list of questions, number of total questions, current category, categories.
     @app.route("/questions", methods=['GET'])
     def get_questions():
       qes=Question.query.all()
@@ -92,7 +95,7 @@ def create_app(test_config=None):
     'currentCategory': 'History'
 
 })
-
+    # DELETE question with his  ID.
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         try:
@@ -115,7 +118,7 @@ def create_app(test_config=None):
         except Exception:
             abort(422)
    
-    
+    # POST a new question, which you must  put the  question and answer text and category, and  finaly difficulty and if user want to search it will active search function
     @app.route('/questions',methods=['POST'])
     def add_question():
       try:  
@@ -135,13 +138,13 @@ def create_app(test_config=None):
         p=Question(question=new_question,answer=new_answer,category=new_category,difficulty=new_difficulty)
 
         p.insert()
-        return jsonify({'ok':True})
+        return jsonify({'success':True})
       except Exception:
             abort(422)	
 
 
     
-    
+    # POST endpoint to get questions based on a search term
     @app.route('/questions',methods=['POST'])
     def search_team(search):
      print("inside search hiiiiiiiiiiiiiiiiiiiiiiii")
@@ -149,14 +152,14 @@ def create_app(test_config=None):
       questions = Question.query.filter(Question.question.ilike(f'%{search}%')).all()
       d=paginate_questions(request,questions )
       print(d)
-      return jsonify( {
+      return jsonify( {     'success':True,
 		            'questions': d,
 		            'total_questions': len(questions),
 		              'currentCategory': 'Entertainment'})
      except Exception:
             abort(422)	
 
-    
+    # GET questions based on category.
     @app.route('/categories/<int:cat_id>/questions',methods=['GET'])
     def get_item_by_gat(cat_id):
          
@@ -166,7 +169,7 @@ def create_app(test_config=None):
       if cat is None:
        abort(404)
       print(cat.type)
-      return jsonify({'questions': [i.format() for i in res],
+      return jsonify({'success':True,'questions': [i.format() for i in res],
     'totalQuestions': len(Question.query.all()),
     'currentCategory': cat.type})
      
@@ -174,7 +177,7 @@ def create_app(test_config=None):
      
      
      
-   
+    # POST endpoint to for  the quiz, it takes category and previous question parameters and returns a random question within the given category  and noy included in the previous array.
     @app.route('/quizzes',methods=['post'])
     def quiz():
      try:
@@ -232,3 +235,4 @@ def create_app(test_config=None):
    
 
     return app
+
