@@ -30,14 +30,14 @@ def create_app(test_config=None):
    
     
     QUESTIONS_PER_PAGE = 10
-    def paginate_questions(request, selection):
+    def paginate_per_10(request, selection):
 	    page = request.args.get('page', 1, type=int)
 	    start = (page - 1) * QUESTIONS_PER_PAGE
 	    end = start + QUESTIONS_PER_PAGE
 
 	    qu = [question.format() for question in selection]
-	    current_questions = qu[start:end]
-	    return current_questions
+	    current = qu[start:end]
+	    return current
 
 
 
@@ -47,7 +47,7 @@ def create_app(test_config=None):
       res=Category.query.all()
       if len(res)==0:
        abort(404)
-      current=paginate_questions(request, res)
+      current=paginate_per_10(request, res)
       d={}
       for i in current:
        d[str(i['id'])]=str(i['type'])
@@ -57,7 +57,7 @@ def create_app(test_config=None):
     @app.route("/questions", methods=['GET'])
     def get_questions():
       qes=Question.query.all()
-      qe=paginate_questions(request, qes)
+      qe=paginate_per_10(request, qes)
       
       
       
@@ -102,9 +102,9 @@ def create_app(test_config=None):
 
             question.delete()
             selection = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selection)
+            current_questions = paginate_per_10(request, selection)
             return jsonify({
-                'success': True,
+               
                 'deleted': question_id,
                 'questions': current_questions,
                 'total_questions': len(selection)
@@ -144,7 +144,7 @@ def create_app(test_config=None):
      print("inside search hiiiiiiiiiiiiiiiiiiiiiiii")
      try:
       questions = Question.query.filter(Question.question.ilike(f'%{search}%')).all()
-      d=paginate_questions(request,questions )
+      d=ppaginate_per_10(request,questions )
       print(d)
       return jsonify( {
 		            'questions': d,
