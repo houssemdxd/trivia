@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
 from models import setup_db, Question, Category
+from settings import DB_NAME, DB_USER, DB_PASSWORD,DB_HOST
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -14,8 +15,10 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
-        self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
+        self.database_name = "trivia"
+      
+        self.database_path = "postgres://{}:{}@{}/{}".format(DB_USER, DB_PASSWORD, DB_HOST, DB_NAME)
+
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -40,13 +43,24 @@ class TriviaTestCase(unittest.TestCase):
      self.assertEqual(data["success"], True)
      self.assertTrue(data["categories"])
      
-    def verif_delete_question(self):
-        res = self.client().delete('/questions/1')
+  
+   
+   
+    def test_delete_question(self):
+        res = self.client().delete('/questions/2')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True) 
         
-    def verif_post_question(self):
+        
+    def test_delete_question_not_found(self):
+        res = self.client().delete('/questions/10000')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "THIS ACTION CAN'T BE PRECESSED")        
+     
+    def test_post_question(self):
         res = {'question': 'why you cry',
             'answer': 'im afraid',
             'difficulty': 4,'category': 1}
@@ -54,20 +68,36 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
-   
-    def verif_do_search(self):
-        search = {'searchTerm': 'hou', }
+        
+        
+    def test_search_not_found(self):
+        search = {
+            'searchTerm': 'azrt55kkhgjgjhgfukg555',
+        }
         res = self.client().post('/search', json=search)
         data = json.loads(res.data)
-        self.assertEqual(data['success'], True)
-        self.assertEqual(res.status_code, 200)
-        
-    def verif__questions_in_category(self):
+      
+        self.assertEqual(res.status_code,404)      
+    
+         
+    def test__questions_in_category(self):
         res = self.client().get('/categories/2/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['current_category'], 'horror')
+        self.assertEqual(data['currentCategory'], 'horror')
+        
+    def test_questions_in_category_not_found(self):
+        res = self.client().get('/categories/100/questions')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
+       
+    def test_do_search(self):
+        search = {'searchTerm': 'what', }
+        res = self.client().post('/questions', json=search)
+        data = json.loads(res.data)
+    
+        self.assertEqual(res.status_code, 200)
     
     def test_quiz(self):
         quiz = {
@@ -81,9 +111,20 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        
+       
         
     
+    def test_quiz_not_found_(self):
+        quiz = {
+            'previous_questions': [6],
+            'quiz_category': {
+                'type': 'abcd',
+                'id': '8787878'
+            }
+        }
+        res = self.client().post('/quizzes', json=quiz)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
         
 
 
