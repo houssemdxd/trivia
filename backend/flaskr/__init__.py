@@ -11,7 +11,6 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
-
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     @app.after_request
@@ -79,7 +78,7 @@ def create_app(test_config=None):
             d1 = {}
 
         return jsonify(
-            {
+            {    "success":True,
                 "questions": l,
                 "totalQuestions": 100,
                 "categories": d,
@@ -186,25 +185,34 @@ def create_app(test_config=None):
     @app.route("/quizzes", methods=["post"])
     def quiz():
         try:
-
+            
+           
             body = request.get_json()
             prv = body.get("previous_questions", None)
             quiz = body.get("quiz_category", None)
+            
             if int(quiz["id"]) == 0:
                 result = Question.query.filter(Question.id.notin_(prv)).all()
                 a = result[random.randrange(1, len(result))].format()
-                print(a)
+               
                 questions = paginate_questions(request, result)
-                print(questions)
+                
                 return jsonify({"question": a})
-            q = Question.query.filter(
-                Question.id.notin_(prv), Question.category == quiz["id"]
-            ).all()
+                
+            if len(prv)>=4:
+             prv=[]      
+            q = Question.query.filter(Question.id.notin_(prv), Question.category == quiz["id"]).all() 
+            
             if len(q) < 0:
                 abort(404)
-            a = q[random.randrange(1, len(q))].format()
-            print(a)
-            return jsonify({"success": True, "question": a})
+          
+            a = q[random.randrange(1, len(q))]
+            while(a is None):
+             a = q[random.randrange(1, len(q))]
+             
+            print(len(q)) 
+            print(len(prv))
+            return jsonify({'question':a.format()})
         except Exception:
             abort(404)
 
