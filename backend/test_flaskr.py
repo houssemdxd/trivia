@@ -59,8 +59,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().delete('/questions/10000')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 422)
-        self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "THIS ACTION CAN'T BE PRECESSED")        
+        
      
     def test_post_question(self):
         res = {'question': 'why you cry',
@@ -92,7 +91,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data["success"], True)
+        
         
     def test_get_categories_not_allowed(self):
         res = self.client().patch('/questions')
@@ -132,7 +131,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/quizzes', json=quiz)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data['success'], True)
+        
        
         
     
