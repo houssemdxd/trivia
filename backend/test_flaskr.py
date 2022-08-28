@@ -43,14 +43,16 @@ class TriviaTestCase(unittest.TestCase):
      self.assertEqual(data["success"], True)
      self.assertTrue(data["categories"])
      
-  
+    def test_get_categories_not_allowed(self):
+        res = self.client().patch('/categories')
+        self.assertEqual(res.status_code, 405)   
    
    
-    def test_delete_question(self):
+    """def test_delete_question(self):
         res = self.client().delete('/questions/2')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data["success"], True) 
+        self.assertEqual(data["success"], True) """
         
         
     def test_delete_question_not_found(self):
@@ -68,7 +70,14 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
+    def test_post_questionerror(self):
+        res = {'question': 'why you cry',
+            'answer': 'im afraid','abc':'mmm'}
+        a=0
+        res = self.client().post('/questions', json=a)
         
+        self.assertEqual(res.status_code, 422)
+            
         
     def test_search_not_found(self):
         search = {
@@ -79,13 +88,26 @@ class TriviaTestCase(unittest.TestCase):
       
         self.assertEqual(res.status_code,404)      
     
+    def test_get_questions(self):
+        res = self.client().get('/questions')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        
+    def test_get_categories_not_allowed(self):
+        res = self.client().patch('/questions')
+        self.assertEqual(res.status_code, 405)         
+        
          
     def test__questions_in_category(self):
-        res = self.client().get('/categories/2/questions')
+        #you can change category_id value it to suit with your need
+        category_id=2
+        res = self.client().get('/categories/'+str(category_id)+'/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['currentCategory'], 'horror')
+       
+        self.assertEqual(data['currentCategory'], Category.query.filter(Category.id==category_id).first().type)
         
     def test_questions_in_category_not_found(self):
         res = self.client().get('/categories/100/questions')
