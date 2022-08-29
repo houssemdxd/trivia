@@ -11,6 +11,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
+    setup=1
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     @app.after_request
@@ -182,39 +183,39 @@ def create_app(test_config=None):
         )
     # POST endpoint to for  the quiz, it takes category and previous 
     
-    @app.route("/quizzes", methods=["post"])
-    def quiz():
-        try:
-            
-           
-            body = request.get_json()
-            prv = body.get("previous_questions", None)
-            quiz = body.get("quiz_category", None)
-            
-            if int(quiz["id"]) == 0:
-                result = Question.query.filter(Question.id.notin_(prv)).all()
-                a = result[random.randrange(1, len(result))].format()
-               
-                questions = paginate_questions(request, result)
-                
-                return jsonify({"question": a})
-                
-            if len(prv)>=4:
-             prv=[]      
-            q = Question.query.filter(Question.id.notin_(prv), Question.category == quiz["id"]).all() 
-            
-            if len(q) < 0:
-                abort(404)
-          
-            a = q[random.randrange(1, len(q))]
-            while(a is None):
-             a = q[random.randrange(1, len(q))]
+    @app.route('/quizzes', methods=['POST'])
+    def get_quiz_question():
+      body = request.get_json()
+      try:
+       prv= body.get('previous_questions')
+
+      
+       quiz = body.get('quiz_category')['id']
+      
+      
+       if (prv is None):
+              abort(400)
+
+       questions = []
+       if quiz == 0 :
+         questions = Question.query.filter(Question.id.notin_(prv)).all()
+       else:
+         category = Category.query.get(quiz)
+         if category is None:
+          abort(404)
+         questions = Question.query.filter(Question.id.notin_(prv),Question.category == quiz).all()
+       current_question = None
+       if(len(questions)>0):
+        index = random.randrange(0, len(questions))
+        current_question = questions[index].format()
+       return jsonify({
              
-            print(len(q)) 
-            print(len(prv))
-            return jsonify({'question':a.format()})
-        except Exception:
-            abort(404)
+              'question':current_question,
+             
+              })
+      except Exception as e:
+       abort(400)
+
 
     @app.errorhandler(404)
     def not_found(error):
